@@ -1,3 +1,4 @@
 {:paths ["src"]
  :deps {quil/quil {:mvn/version "4.3.1563"}
-        io.github.nextjournal/clerk {:mvn/version "0.15.957"}}}
+        io.github.nextjournal/clerk {:mvn/version "0.15.957"}
+        io.github.adam-james-v/solenoid {:git/sha "34c90d21604128e26ce9d0d692b8c8e7623316a7"}}}
