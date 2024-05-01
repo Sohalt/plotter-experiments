@@ -1,1 +1,3 @@
-{:paths ["src"]}
+{:paths ["src"]
+ :deps {quil/quil {:mvn/version "4.3.1563"}
+        io.github.nextjournal/clerk {:mvn/version "0.15.957"}}}
