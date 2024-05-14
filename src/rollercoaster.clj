@@ -36,8 +36,11 @@
                   :offset-y (/ h 4)
                   :period 40})))
 
-(defn vertical-line [x]
-  [[x 0] [x h]])
+(defn vertical-line
+  ([x]
+   (vertical-line x h))
+  ([x height]
+   [[x h] [x height]]))
 
 (defn line
   ([] (line {}))
@@ -54,8 +57,8 @@
                     :or {d-x 20
                          slope 0.5}}]
   (let [xs (range 0 w d-x)
-        vertical-segments (concat (map vertical-line xs)
-                                  (map vertical-line (map (partial + 5) xs)))
+        vertical-segments (concat (map #(vertical-line % (track %)) xs)
+                                  (map #(vertical-line % (track %)) (map (partial + 5) xs)))
         descending-f (map #(mask track (line {:slope (- slope) :offset %})) (range 0 1500 d-x))
         ascending-f (map #(mask track (line {:slope slope :offset %})) (range -1500 1500 d-x))
         ]
