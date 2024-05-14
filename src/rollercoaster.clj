@@ -29,12 +29,15 @@
 (defn add [f1 f2]
   (fn [x] (+ (f1 x) (f2 x))))
 
-(def track (add (sin {:amp (/ h 4)
-                  :offset-y (/ h 2)
-                  :period 50})
-            (sin {:amp (/ h 5)
-                  :offset-y (/ h 4)
-                  :period 40})))
+(def track (let [ox -200]
+             (add (sin {:amp (/ h 4)
+                        :offset-x ox
+                        :offset-y (/ h 2)
+                        :period 50})
+                  (sin {:amp (/ h 5)
+                        :offset-x ox
+                        :offset-y (/ h 4)
+                        :period 40}))))
 
 (defn vertical-line
   ([x]
