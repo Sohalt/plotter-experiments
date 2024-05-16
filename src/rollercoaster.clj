@@ -1,13 +1,8 @@
 (ns rollercoaster
   (:require [quil.core :as q]
+            [quil.middleware :as m]
             [solenoid.controls :as c]
             [solenoid.server :as ss]))
-
-(comment
-  (require
-   '[solenoid.controls :as c]
-   '[solenoid.server :as ss])
-  (ss/serve!))
 
 (def w 600)
 (def h 400)
@@ -142,11 +137,66 @@
   (concat (trace-segments track)
           (scaffolding {})))
 
-(defn draw []
-  (q/background 255)
-  (doall (map (partial apply q/line) (roller-coaster)))
-  (doall (map (partial apply q/line) (ferris-wheel [(/ w 1.2) (/ h 2.5)] 100 (/ (q/frame-count) 100)))))
+(defn visible-point? [[x y]]
+  (and (<= 0 x w) (<= 0 y h)))
 
-(q/defsketch rollercoaster
-  :size [w h]
-  :draw draw)
+(defn visible-line? [[start end]]
+  (or (visible-point? start) (visible-point? end)))
+
+(defn draw [{:keys [lines]}]
+  (q/background 255)
+  (doall (map (partial apply q/line) lines)))
+
+(defn setup []
+  {:lines (concat (roller-coaster)
+                  (ferris-wheel [(/ w 1.2) (/ h 2.5)] 100))})
+
+(defn update-state [_]
+  {:lines (concat (roller-coaster)
+                  (ferris-wheel [(/ w 1.2) (/ h 2.5)] 100))})
+
+(defn setup-animation-state []
+  (q/frame-rate 30)
+  {:lines (concat (roller-coaster)
+                  (ferris-wheel [(/ w 1.2) (/ h 2.5)] 100))
+   :t 0})
+
+(defn update-animation-state [{:keys [t]}]
+  {:t (inc t)
+   :lines (concat (roller-coaster)
+                  (ferris-wheel [(/ w 1.2) (/ h 2.5)] 100 (/ t 40)))})
+
+(defn setup-plot-state []
+  (q/frame-rate 60)
+  {:lines []
+   :lines-todo (filter visible-line? (concat (roller-coaster)
+                                             (ferris-wheel [(/ w 1.2) (/ h 2.5)] 100)))})
+
+(defn update-plot-state [{:keys [lines lines-todo]}]
+  {:lines (conj lines (first lines-todo))
+   :lines-todo (rest lines-todo)})
+
+(comment
+  (q/defsketch static
+    :size [w h]
+    :setup setup
+    :update update-state
+    :draw draw
+    :middleware [m/fun-mode])
+  (do (ss/serve!)
+      (clojure.java.browse/browse-url "http://localhost:9876"))
+
+  (q/defsketch animated
+    :size [w h]
+    :setup setup-animation-state
+    :draw draw
+    :update update-animation-state
+    :middleware [m/fun-mode])
+
+  (q/defsketch plot
+    :size [w h]
+    :setup setup-plot-state
+    :draw draw
+    :update update-plot-state
+    :middleware [m/fun-mode])
+  )
