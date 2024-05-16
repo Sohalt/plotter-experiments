@@ -1,5 +1,13 @@
 (ns rollercoaster
-  (:require [quil.core :as q]))
+  (:require [quil.core :as q]
+            [solenoid.controls :as c]
+            [solenoid.server :as ss]))
+
+(comment
+  (require
+   '[solenoid.controls :as c]
+   '[solenoid.server :as ss])
+  (ss/serve!))
 
 (def w 600)
 (def h 400)
@@ -29,15 +37,25 @@
 (defn add [f1 f2]
   (fn [x] (+ (f1 x) (f2 x))))
 
-(def track (let [ox -200]
-             (add (sin {:amp (/ h 4)
-                        :offset-x ox
-                        :offset-y (/ h 2)
-                        :period 50})
-                  (sin {:amp (/ h 5)
-                        :offset-x ox
-                        :offset-y (/ h 4)
-                        :period 40}))))
+(def c1 (c/letcontrols [amp (/ h 4)
+                        offset-x -200
+                        offset-y (/ h 2)
+                        period 50]
+           {:amp amp
+            :offset-x offset-x
+            :offset-y offset-y
+            :period period}))
+(def c2 (c/letcontrols [amp (/ h 5)
+                        offset-x -200
+                        offset-y (/ h 4)
+                        period 40]
+           {:amp amp
+            :offset-x offset-x
+            :offset-y offset-y
+            :period period}))
+
+(defn track [x] ((add (sin @c1)
+                      (sin @c2)) x))
 
 (defn path
   ([points] (path points {}))
