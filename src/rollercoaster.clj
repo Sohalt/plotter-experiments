@@ -32,25 +32,73 @@
 (defn add [f1 f2]
   (fn [x] (+ (f1 x) (f2 x))))
 
-(def c1 (c/letcontrols [amp (/ h 4)
-                        offset-x -200
-                        offset-y (/ h 2)
-                        period 50]
-           {:amp amp
-            :offset-x offset-x
-            :offset-y offset-y
-            :period period}))
-(def c2 (c/letcontrols [amp (/ h 5)
-                        offset-x -200
-                        offset-y (/ h 4)
-                        period 40]
-           {:amp amp
-            :offset-x offset-x
-            :offset-y offset-y
-            :period period}))
+(def c1 (atom {:amp (/ h 4)
+               :offset-x -200
+               :offset-y (/ h 2)
+               :period 50}))
+
+(def c2 (atom {:amp (/ h 5)
+               :offset-x -200
+               :offset-y (/ h 4)
+               :period 40}))
+
+(comment
+  (do (ss/serve!)
+      (clojure.java.browse/browse-url "http://localhost:9876")
+
+      (def c1 (c/letcontrols [amp (/ h 4)
+                              offset-x -200
+                              offset-y (/ h 2)
+                              period 50]
+                {:amp amp
+                 :offset-x offset-x
+                 :offset-y offset-y
+                 :period period}))
+
+      (def c2 (c/letcontrols [amp (/ h 5)
+                              offset-x -200
+                              offset-y (/ h 4)
+                              period 40]
+                {:amp amp
+                 :offset-x offset-x
+                 :offset-y offset-y
+                 :period period}))))
 
 (defn track [x] ((add (sin @c1)
                       (sin @c2)) x))
+(defn vertical-line
+  ([x]
+   (vertical-line x h))
+  ([x height]
+   [[x h] [x height]]))
+
+(defn line
+  ([] (line {}))
+  ([{:keys [slope offset]
+     :or {slope 1 offset 0}}]
+   (fn [x] (+ (* slope x) offset))))
+
+(defn mask [m f]
+  (fn [x] (let [y (f x)]
+            (when (< (m x) y)
+              y))))
+
+(defn scaffolding [{:keys [d-x slope]
+                    :or {d-x 20
+                         slope 0.5}}]
+  (let [xs (range 0 w d-x)
+        vertical-segments (concat (map #(vertical-line % (track %)) xs)
+                                  (map #(vertical-line % (track %)) (map (partial + 5) xs)))
+        descending-f (map #(mask track (line {:slope (- slope) :offset %})) (range 0 1500 d-x))
+        ascending-f (map #(mask track (line {:slope slope :offset %})) (range -1500 1500 d-x))
+        ]
+    (concat vertical-segments
+            (mapcat trace-segments descending-f)
+            (mapcat trace-segments ascending-f))))
+
+(defn roller-coaster []
+  (concat (trace-segments track)
+          (scaffolding {})))
 
 (defn path
   ([points] (path points {}))
@@ -103,40 +151,6 @@
              spokes
              gondolas))))
 
-(defn vertical-line
-  ([x]
-   (vertical-line x h))
-  ([x height]
-   [[x h] [x height]]))
-
-(defn line
-  ([] (line {}))
-  ([{:keys [slope offset]
-     :or {slope 1 offset 0}}]
-   (fn [x] (+ (* slope x) offset))))
-
-(defn mask [m f]
-  (fn [x] (let [y (f x)]
-            (when (< (m x) y)
-              y))))
-
-(defn scaffolding [{:keys [d-x slope]
-                    :or {d-x 20
-                         slope 0.5}}]
-  (let [xs (range 0 w d-x)
-        vertical-segments (concat (map #(vertical-line % (track %)) xs)
-                                  (map #(vertical-line % (track %)) (map (partial + 5) xs)))
-        descending-f (map #(mask track (line {:slope (- slope) :offset %})) (range 0 1500 d-x))
-        ascending-f (map #(mask track (line {:slope slope :offset %})) (range -1500 1500 d-x))
-        ]
-    (concat vertical-segments
-            (mapcat trace-segments descending-f)
-            (mapcat trace-segments ascending-f))))
-
-(defn roller-coaster []
-  (concat (trace-segments track)
-          (scaffolding {})))
-
 (defn visible-point? [[x y]]
   (and (<= 0 x w) (<= 0 y h)))
 
@@ -176,16 +190,14 @@
   {:lines (conj lines (first lines-todo))
    :lines-todo (rest lines-todo)})
 
-(comment
-  (q/defsketch static
-    :size [w h]
-    :setup setup
-    :update update-state
-    :draw draw
-    :middleware [m/fun-mode])
-  (do (ss/serve!)
-      (clojure.java.browse/browse-url "http://localhost:9876"))
+(q/defsketch static
+  :size [w h]
+  :setup setup
+  :update update-state
+  :draw draw
+  :middleware [m/fun-mode])
 
+(comment
   (q/defsketch animated
     :size [w h]
     :setup setup-animation-state
