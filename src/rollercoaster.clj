@@ -209,5 +209,4 @@
     :setup setup-plot-state
     :draw draw
     :update update-plot-state
-    :middleware [m/fun-mode])
-  )
+    :middleware [m/fun-mode]))
