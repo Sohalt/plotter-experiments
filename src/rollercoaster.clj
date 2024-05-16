@@ -46,19 +46,18 @@
   (do (ss/serve!)
       (clojure.java.browse/browse-url "http://localhost:9876")
 
-      (def c1 (c/letcontrols [amp (/ h 4)
-                              offset-x -200
-                              offset-y (/ h 2)
-                              period 50]
+      (def c1 (c/letcontrols [amp {:type :slider :min 0 :max h :value (/ h 4)}
+                              offset-x {:type :slider :min (- w) :max w :value -200}
+                              offset-y {:type :slider :min (- h) :max h :value (/ h 2)}
+                              period {:type :slider :min -50 :max 50 :value 50}]
                 {:amp amp
                  :offset-x offset-x
                  :offset-y offset-y
                  :period period}))
-
-      (def c2 (c/letcontrols [amp (/ h 5)
-                              offset-x -200
-                              offset-y (/ h 4)
-                              period 40]
+      (def c2 (c/letcontrols [amp {:type :slider :min 0 :max h :value (/ h 5)}
+                              offset-x {:type :slider :min (- w) :max w :value -200}
+                              offset-y {:type :slider :min (- h) :max h :value (/ h 4)}
+                              period {:type :slider :min -50 :max 50 :value 40}]
                 {:amp amp
                  :offset-x offset-x
                  :offset-y offset-y
