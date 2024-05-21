@@ -189,14 +189,14 @@
   {:lines (conj lines (first lines-todo))
    :lines-todo (rest lines-todo)})
 
-(q/defsketch static
-  :size [w h]
-  :setup setup
-  :update update-state
-  :draw draw
-  :middleware [m/fun-mode])
-
 (comment
+  (q/defsketch static
+    :size [w h]
+    :setup setup
+    :update update-state
+    :draw draw
+    :middleware [m/fun-mode])
+
   (q/defsketch animated
     :size [w h]
     :setup setup-animation-state
