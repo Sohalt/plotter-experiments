@@ -58,7 +58,7 @@
          (pen-up))))
 
 (defn preamble []
-  (str/join "\n" ["IN;" "PS 2;"]))
+  (str/join "\n" ["IN;" "SP 2;"]))
 
 (defn plot [& s]
   (doseq [line (concat [(preamble)] s)]
